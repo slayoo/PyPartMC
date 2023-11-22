@@ -2,29 +2,32 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 n_part = [10,100,1000,10000]
-python_timestep = np.zeros(len(n_part))
-python_timestep[0] = 1.643
-python_timestep[1] = 27.417
-python_timestep[2] = 1*60 + 31.322 
-python_timestep[3] = 2*60 + 12.00
-python_to_fortran = np.zeros(len(n_part))
-python_to_fortran[0] = 1.872
-python_to_fortran[1] = 27.417 
-python_to_fortran[2] = 1*60 + 31.322
-python_to_fortran[3] = 2*60 + 12.00
-fortran = np.zeros(len(n_part)) 
-fortran[0] = 1.01 
-fortran[1] = 26.0 
-fortran[2] = 1*60 + 24.448
-fortran[3] = 2*60 + 13.688 
 
-plt.plot(n_part, python_timestep,label='python')
-plt.plot(n_part, python_to_fortran,label='python to fortran')
-plt.plot(n_part, fortran, label='fortran')
+# output from running cd partmc_run; ./run.sh > fortran.txt
+fortran = np.loadtxt('partmc_run/fortran.txt')
+np.testing.assert_array_equal(fortran[:,0], n_part)
+fortran = fortran[:,1]
+
+# output from running ./run_python_full.sh > python_full.txt
+python_to_fortran = np.loadtxt('python_full.txt')
+np.testing.assert_array_equal(python_to_fortran[:,0], n_part)
+python_to_fortran = python_to_fortran[:,1]
+
+# output from running ./run_python_timestep.sh > python_timestep.txt
+python_timestep = np.loadtxt('python_timestep.txt')
+np.testing.assert_array_equal(python_timestep[:,0], n_part)
+python_timestep = python_timestep[:,1]
+
+style = {'marker':'.'}
+
+plt.plot(n_part, python_timestep, label='PyPartMC, timestepping in Fortran', **style)
+plt.plot(n_part, python_to_fortran, label='PyPartMC, timestepping in Python', **style)
+plt.plot(n_part, fortran, label='PartMC (binary called from shell)', **style)
 
 plt.xlabel('Computational particles')
-plt.ylabel('Wall clock time (s)')
+plt.ylabel('User CPU time (s)')
 plt.xscale('log')
+plt.yscale('log')
 plt.legend()
 plt.grid()
 
